@@ -1,0 +1,20 @@
+name: Build TF2
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Generate solution
+        working-directory: src
+        run: devtools\bin\vpc.exe /tf /define:SOURCESDK +game /mksln tf2.sln
+
+      - name: Build
+        working-directory: src
+        run: msbuild tf2.sln /m /p:Configuration=Release /p:Platform=win64
