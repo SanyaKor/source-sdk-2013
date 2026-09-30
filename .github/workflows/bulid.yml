@@ -1,6 +1,8 @@
-name: Build TF2
+name: Build Windows
 
-on: [push, pull_request]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
 
 jobs:
   build:
@@ -11,10 +13,33 @@ jobs:
 
       - uses: microsoft/setup-msbuild@v2
 
+      - name: Select game
+        shell: pwsh
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          $title = $env:PR_TITLE.ToUpperInvariant()
+
+          if ($title.Contains("[TF2]")) {
+            "VPC_GAMES=/tf" >> $env:GITHUB_ENV
+            "SOLUTION=tf2.sln" >> $env:GITHUB_ENV
+          }
+          elseif ($title.Contains("[HL2]")) {
+            "VPC_GAMES=/hl2mp" >> $env:GITHUB_ENV
+            "SOLUTION=hl2mp.sln" >> $env:GITHUB_ENV
+          }
+          else {
+            "VPC_GAMES=/tf /hl2mp" >> $env:GITHUB_ENV
+            "SOLUTION=all.sln" >> $env:GITHUB_ENV
+          }
+
       - name: Generate solution
         working-directory: src
-        run: devtools\bin\vpc.exe /tf /define:SOURCESDK +game /mksln tf2.sln
+        shell: pwsh
+        run: |
+          $games = $env:VPC_GAMES -split " "
+          & .\devtools\bin\vpc.exe @games /define:SOURCESDK +game /mksln $env:SOLUTION
 
       - name: Build
         working-directory: src
-        run: msbuild tf2.sln /m /p:Configuration=Release /p:Platform=win64
+        run: msbuild $env:SOLUTION /m /p:Configuration=Release /p:Platform=win64
