@@ -89,7 +89,8 @@ C_BaseObject::C_BaseObject(  )
 	m_fObjectFlags = 0;
 	m_iOldUpgradeLevel = 0;
 
-	m_flCurrentBuildRotation = 0;
+	m_flCurrentBuildRotation = 0
+	test test test
 
 	m_damageLevel = BUILDING_DAMAGE_LEVEL_NONE;
 
